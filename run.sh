@@ -11,7 +11,7 @@ fi
 
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TSV="$DIR/organisations.tsv"
+TSV="$DIR/resources/organisations.tsv"
 
 while IFS=$'\t' read -r -a cols || [ -n "${cols[*]}" ]; do
     [[ ${#cols[@]} -eq 0 ]] && continue

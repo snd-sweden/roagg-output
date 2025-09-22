@@ -74,7 +74,7 @@ function fetchTextFile(path) {
 
 document.addEventListener('DOMContentLoaded', function() {
     // Load organisations.tsv and populate dropdown
-    fetchTextFile('organisations.tsv').then(tsv => {
+    fetchTextFile('resources/organisations.tsv').then(tsv => {
         const orgs = tsvStringToJsonArray(tsv);
         const select = document.getElementById('orgSelect');
         const downloadBtn = document.getElementById('downloadCsvBtn');
