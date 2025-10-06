@@ -36,6 +36,6 @@ echo "Add clientName and clientType to all files"
 python3 ./scripts/add_datacite_clients_info.py
 
 echo "Combine all outputs into combined-outputs.csv"
-sh combine_outputs.sh
+sh ./combine_outputs.sh
 
 echo "All done!"
