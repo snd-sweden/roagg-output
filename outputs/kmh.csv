@@ -1,9 +1,9 @@
-doi,clientId,publicationYear,resourceType,title,publisher,isPublisher,haveCreatorAffiliation,haveContributorAffiliation,isLatestVersion,isConceptDoi,createdAt,updatedAt,clientName,clientType
-10.5281/zenodo.5831225,cern.zenodo,2022,Other,Sonification of complex spectral structures,Zenodo,0,1,0,1,0,2022-01-09T00:44:17Z,2022-01-09T00:44:18Z,Zenodo,repository
-10.5281/zenodo.5831224,cern.zenodo,2022,Other,Sonification of complex spectral structures,Zenodo,0,1,0,0,0,2022-01-09T00:44:19Z,2022-01-09T00:44:19Z,Zenodo,repository
-10.5281/zenodo.10473408,cern.zenodo,2023,ConferenceProceeding,Music and Installation Programme - The Sound and Music Computing Conference 2023,Zenodo,0,1,0,1,0,2024-01-09T09:52:45Z,2024-01-09T09:52:45Z,Zenodo,repository
-10.5281/zenodo.10473407,cern.zenodo,2023,ConferenceProceeding,Music and Installation Programme - The Sound and Music Computing Conference 2023,Zenodo,0,1,0,0,0,2024-01-09T09:53:06Z,2024-01-09T09:53:06Z,Zenodo,repository
-10.5281/zenodo.10829830,cern.zenodo,2024,ConferencePaper,Learning Body Movement Sonification in an Hour,Zenodo,0,1,0,0,1,2024-03-18T12:19:18Z,2024-03-18T12:19:19Z,Zenodo,repository
-10.5281/zenodo.10829831,cern.zenodo,2024,ConferencePaper,Learning Body Movement Sonification in an Hour,Zenodo,0,1,0,1,0,2024-03-18T12:19:18Z,2024-03-18T12:19:19Z,Zenodo,repository
-10.5281/zenodo.14339002,cern.zenodo,2024,ConferencePaper,A Speaker Agnostic Approach to Spatialisation in Electroacoustic Music,Zenodo,0,1,0,0,1,2024-12-09T17:27:03Z,2024-12-09T17:27:04Z,Zenodo,repository
-10.5281/zenodo.14339003,cern.zenodo,2024,ConferencePaper,A Speaker Agnostic Approach to Spatialisation in Electroacoustic Music,Zenodo,0,1,0,1,0,2024-12-09T17:27:03Z,2024-12-09T17:27:04Z,Zenodo,repository
+doi,clientId,publicationYear,resourceType,title,publisher,isPublisher,haveCreatorAffiliation,haveContributorAffiliation,isLatestVersion,isConceptDoi,createdAt,updatedAt,inDataCite,inOpenAire,openAireBestAccessRight,openAireIndicatorsDownloads,openAireIndicatorsViews,clientName,clientType
+10.5281/zenodo.5831225,cern.zenodo,2022,Other,Sonification of complex spectral structures,Zenodo,0,1,0,1,0,2022-01-09T00:44:17Z,2022-01-09T00:44:18Z,1,,,,,Zenodo,repository
+10.5281/zenodo.5831224,cern.zenodo,2022,Other,Sonification of complex spectral structures,Zenodo,0,1,0,0,0,2022-01-09T00:44:19Z,2022-01-09T00:44:19Z,1,,,,,Zenodo,repository
+10.5281/zenodo.10473408,cern.zenodo,2023,ConferenceProceeding,Music and Installation Programme - The Sound and Music Computing Conference 2023,Zenodo,0,1,0,1,0,2024-01-09T09:52:45Z,2024-01-09T09:52:45Z,1,,,,,Zenodo,repository
+10.5281/zenodo.10473407,cern.zenodo,2023,ConferenceProceeding,Music and Installation Programme - The Sound and Music Computing Conference 2023,Zenodo,0,1,0,0,0,2024-01-09T09:53:06Z,2024-01-09T09:53:06Z,1,,,,,Zenodo,repository
+10.5281/zenodo.10829830,cern.zenodo,2024,ConferencePaper,Learning Body Movement Sonification in an Hour,Zenodo,0,1,0,0,1,2024-03-18T12:19:18Z,2024-03-18T12:19:19Z,1,,,,,Zenodo,repository
+10.5281/zenodo.10829831,cern.zenodo,2024,ConferencePaper,Learning Body Movement Sonification in an Hour,Zenodo,0,1,0,1,0,2024-03-18T12:19:18Z,2024-03-18T12:19:19Z,1,,,,,Zenodo,repository
+10.5281/zenodo.14339002,cern.zenodo,2024,ConferencePaper,A Speaker Agnostic Approach to Spatialisation in Electroacoustic Music,Zenodo,0,1,0,0,1,2024-12-09T17:27:03Z,2024-12-09T17:27:04Z,1,,,,,Zenodo,repository
+10.5281/zenodo.14339003,cern.zenodo,2024,ConferencePaper,A Speaker Agnostic Approach to Spatialisation in Electroacoustic Music,Zenodo,0,1,0,1,0,2024-12-09T17:27:03Z,2024-12-09T17:27:04Z,1,,,,,Zenodo,repository
