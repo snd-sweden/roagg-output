@@ -122,6 +122,7 @@ function loadOrgCsv(slug) {
         .then(csv => {
             const jsonArray = csvStringToJsonArray(csv);
             gridApi.setGridOption('rowData', jsonArray);
+            document.getElementById('downloadCsvBtnLabel').textContent = `Download ${slug}.csv`;
         })
         .catch(err => {
             gridApi.setGridOption('rowData', []);
