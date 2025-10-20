@@ -20,7 +20,7 @@ const gridOptions = {
       const url = 'https://doi.org/' + params.value;
       return `<a href="${url}" target="_blank" rel="noopener noreferrer">${params.value}</a>`;
     } },
-    { field: "clientId", filter: true, floatingFilter: true  },
+    { field: "clientName", filter: true, floatingFilter: true  },
     { field: "publicationYear", filter: true, floatingFilter: true  },
     { field: "resourceType", filter: true, floatingFilter: true  },
     { field: "title", filter: true, floatingFilter: true  },
@@ -111,7 +111,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .catch(err => {
                     alert('Could not download CSV for ' + slug + ': ' + err.message);
-                });
+                }
+            );
         });
     });
 });
@@ -126,7 +127,7 @@ function loadOrgCsv(slug) {
         })
         .catch(err => {
             gridApi.setGridOption('rowData', []);
-            alert('Could not load CSV for ' + slug + ': ' + err.message);
+            alert('Could not load CSV "' + slug + '.csv": ' + err.message);
         });
 }
 
