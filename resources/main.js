@@ -76,6 +76,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load organisations.tsv and populate dropdown
     fetchTextFile('resources/organisations.tsv').then(tsv => {
         const orgs = tsvStringToJsonArray(tsv);
+        // sort orgs by name_en using Swedish locale
+        orgs.sort((a, b) => a.name_en.localeCompare(b.name_en, 'sv-SE'));
         const select = document.getElementById('orgSelect');
         const downloadBtn = document.getElementById('downloadCsvBtn');
         orgs.forEach(org => {
