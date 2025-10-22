@@ -86,13 +86,48 @@ document.addEventListener('DOMContentLoaded', function() {
             opt.textContent = org.name_en + ' (' + org.slug + ')';
             select.appendChild(opt);
         });
-        // Optionally, select the first org and load its data
-        if (orgs.length > 0) {
-            select.value = orgs[0].slug;
-            loadOrgCsv(orgs[0].slug);
+        // Check if there's a hash in the URL and select that org
+        let initialSlug = null;
+        if (window.location.hash) {
+            const hashSlug = window.location.hash.substring(1); // Remove the '#'
+            // Check if this slug exists in our orgs
+            const foundOrg = orgs.find(org => org.slug === hashSlug);
+            if (foundOrg) {
+                initialSlug = hashSlug;
+            }
         }
+        
+        // If no valid hash, select the first org
+        if (!initialSlug && orgs.length > 0) {
+            initialSlug = orgs[0].slug;
+        }
+        
+        if (initialSlug) {
+            select.value = initialSlug;
+            loadOrgCsv(initialSlug);
+            // Set the hash without triggering a reload
+            if (window.location.hash !== '#' + initialSlug) {
+                window.history.replaceState(null, '', '#' + initialSlug);
+            }
+        }
+        
         select.addEventListener('change', function() {
-            loadOrgCsv(this.value);
+            const slug = this.value;
+            loadOrgCsv(slug);
+            // Update the URL hash
+            window.history.pushState(null, '', '#' + slug);
+        });
+        
+        // Handle browser back/forward navigation
+        window.addEventListener('hashchange', function() {
+            const hashSlug = window.location.hash.substring(1);
+            if (hashSlug && select.value !== hashSlug) {
+                const foundOrg = orgs.find(org => org.slug === hashSlug);
+                if (foundOrg) {
+                    select.value = hashSlug;
+                    loadOrgCsv(hashSlug);
+                }
+            }
         });
 
         // Download CSV button functionality
