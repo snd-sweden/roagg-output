@@ -14,7 +14,8 @@ To run the script to fetch CSV outputs for all organisations in the SND network 
 | Output | Description |
 | --- | --- |
 | [outputs](outputs) | CSV outputs for each organisation |
-| [combined-outputs.csv](combined-outputs.csv) | Outputs from all organisations combined |
+| [combined-outputs.csv](combined-outputs.csv) | Outputs from all organisations csv combined |
+| [aggregated-outputs.csv](aggregated-outputs.csv) | Aggregated oputputs (only one DOI per row) |
 
 
 ## Dependencies
