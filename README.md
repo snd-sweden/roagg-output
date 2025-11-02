@@ -4,7 +4,7 @@ The data is availible as a combined csv-file and csv-files for each organisation
 
 ## Explore
 Explore the outputs and filter the results in the webapp:  
-https://snd-sweden.github.io/research-output-aggregator-output/
+[https://snd-sweden.github.io/roagg-output](https://snd-sweden.github.io/roagg-output)
 
 ## Run
 To run the script to fetch CSV outputs for all organisations in the SND network ([organisations.tsv](organisations.tsv)):  
