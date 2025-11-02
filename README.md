@@ -19,6 +19,6 @@ To run the script to fetch CSV outputs for all organisations in the SND network 
 
 
 ## Dependencies
-https://github.com/snd-sweden/research-output-aggregator
+https://github.com/snd-sweden/roagg
 
 The latest version from master will be downloaded automatically when running the script.
