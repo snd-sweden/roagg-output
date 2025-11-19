@@ -21,7 +21,7 @@ const gridOptions = {
                 return `<a href="https://doi.org/${params.value}" target="_blank" rel="noopener noreferrer">${params.value}</a>`;
             } 
         },
-        { field: "clientName", filter: true, floatingFilter: true  },
+        { field: "dataCiteClientName", filter: true, floatingFilter: true  },
         { field: "publicationYear", filter: true, floatingFilter: true  },
         { field: "resourceType", filter: true, floatingFilter: true  },
         { field: "title", filter: true, floatingFilter: true  },
@@ -32,7 +32,8 @@ const gridOptions = {
         { field: "createdAt" },
         { field: "updatedAt" },
         { field: "inDataCite", filter: true, floatingFilter: true },
-        { field: "inOpenAire", filter: true, floatingFilter: true }
+        { field: "inOpenAire", filter: true, floatingFilter: true },
+        { field: "inOpenAlex", filter: true, floatingFilter: true  }
     ],
     defaultColDef: {
         flex: 1,

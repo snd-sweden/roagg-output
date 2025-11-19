@@ -39,11 +39,12 @@ def add_client_info_to_csv(csv_file: str, clients: dict):
         rows = list(reader)
 
     for row in rows:
-        client_id = row.get("clientId")
+        client_id = row.get("dataCiteClientId")
+
         if client_id:
             client = clients.get(client_id)
-            row["clientName"] = client["attributes"]["name"] if client else "Unknown"
-            row["clientType"] = client["attributes"]["clientType"] if client else "Unknown"
+            row["dataCiteClientName"] = client["attributes"]["name"] if client else "Unknown"
+            row["dataCiteClientType"] = client["attributes"]["clientType"] if client else "Unknown"
 
     with open(csv_file, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=rows[0].keys())

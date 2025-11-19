@@ -35,8 +35,8 @@ while IFS=$'\t' read -r -a cols || [ -n "${cols[*]}" ]; do
         roagg --ror "$org_ror" --output "$output_file"
     fi
     
-    echo "Sleeping for 5 minutes to avoid rate limiting..."
-    sleep 300
+    echo "Sleeping for 3 minutes to avoid rate limiting..."
+    sleep 180
 done < "$TSV"
 
 echo "Add clientName and clientType to all files"
