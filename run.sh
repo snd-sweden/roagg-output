@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Clone the research-output-aggregator repository if not present
-if [ ! -d "research-output-aggregator" ]; then
-    echo "Directory research-output-aggregator not found, cloning repository..."
-    git clone https://github.com/snd-sweden/research-output-aggregator
+# Clone the roagg repository if not present
+if [ ! -d "roagg" ]; then
+    echo "Directory roagg not found, cloning repository..."
+    git clone https://github.com/snd-sweden/roagg roagg
 else
-    echo "Directory research-output-aggregator exists, pulling latest changes..."
-    cd research-output-aggregator && git pull && pip install . && cd ..
+    echo "Directory roagg exists, pulling latest changes..."
+    cd roagg && git pull && pip install . && cd ..
 fi
 
 
@@ -23,17 +23,16 @@ while IFS=$'\t' read -r -a cols || [ -n "${cols[*]}" ]; do
 
     org_slug="${cols[0]}"
     org_name_en="${cols[1]}"
-    org_name_sv="${cols[2]}"
     org_ror="${cols[3]}"
+    name_txt="roagg/tests/name-lists/$org_slug.txt"
+    output_file="outputs/$org_slug.csv"
 
-    if [ -f "research-output-aggregator/tests/name-lists/$org_slug.txt" ]; then
-        name_txt="research-output-aggregator/tests/name-lists/$org_slug.txt"
+    if [ -f "$name_txt" ]; then
         echo "Processing ROR+TXT for $org_slug ($org_name_en) ROR: $org_ror"
-        roagg --ror "$org_ror" --name-txt "$name_txt" --output "outputs/$org_slug.csv"
-
+        roagg --ror "$org_ror" --name-txt "$name_txt" --output "$output_file"
     else
         echo "Processing ROR for $org_slug ($org_name_en) ROR: $org_ror"
-        roagg --ror "$org_ror" --output "outputs/$org_slug.csv"
+        roagg --ror "$org_ror" --output "$output_file"
     fi
     
     echo "Sleeping for 5 minutes to avoid rate limiting..."
