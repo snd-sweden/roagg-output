@@ -346,15 +346,29 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+
 function loadOrgCsv(slug) {
     const path = `outputs/${slug}.csv`;
-    fetchTextFile(`${path}?v=${Date.now()}`) // Cache busting
-        .then(csv => {
+    fetch(`${path}?v=${Date.now()}`) // Cache busting
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to fetch ' + path);
+
+            const lastModified = response.headers.get('Last-Modified');
+
+            return response.text().then(csv => ({ csv, lastModified }));
+        })
+        .then(({ csv, lastModified }) => {
             const jsonArray = csvStringToJsonArray(csv);
             gridApi.setGridOption('rowData', jsonArray);
             updateResourceTypeCharts(jsonArray);
             document.getElementById('downloadCsvBtnLabel').textContent = `Download ${slug}.csv`;
             document.getElementById('downloadXlsxBtnLabel').textContent = `Download ${slug}.xlsx`;
+
+            const lastUpdate = lastModified ? new Date(lastModified) : null;
+            document.getElementById('lastUpdate').textContent =
+                lastUpdate && !Number.isNaN(lastUpdate.getTime())
+                    ? lastUpdate.toISOString().split('T')[0]
+                    : 'Unknown';
         })
         .catch(err => {
             gridApi.setGridOption('rowData', []);
@@ -362,4 +376,5 @@ function loadOrgCsv(slug) {
             alert('Could not load CSV "' + slug + '.csv": ' + err.message);
         });
 }
+
 
