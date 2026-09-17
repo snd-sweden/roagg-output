@@ -1,3 +1,5 @@
+const GITHUB_REPO = 'snd-sweden/roagg-output';
+
 // Row Data Interface
 
 // Grid API: Access to Grid API methods
@@ -346,35 +348,43 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+function loadLastUpdated(slug) {
+    // GitHub Pages doesn't reliably expose a Last-Modified header, so we ask the
+    // GitHub API for the last commit that touched this org's CSV instead.
+    const apiUrl = `https://api.github.com/repos/${GITHUB_REPO}/commits?path=outputs/${slug}.csv&per_page=1`;
+    fetch(apiUrl)
+        .then(r => {
+            if (!r.ok) throw new Error('Failed to fetch commit info');
+            return r.json();
+        })
+        .then(commits => {
+            const date = commits[0] && new Date(commits[0].commit.committer.date);
+            document.getElementById('lastUpdate').textContent =
+                date && !Number.isNaN(date.getTime())
+                    ? date.toISOString().split('T')[0]
+                    : 'Unknown';
+        })
+        .catch(() => {
+            document.getElementById('lastUpdate').textContent = 'Unknown';
+        });
+}
 
 function loadOrgCsv(slug) {
     const path = `outputs/${slug}.csv`;
-    fetch(`${path}?v=${Date.now()}`) // Cache busting
-        .then(response => {
-            if (!response.ok) throw new Error('Failed to fetch ' + path);
-
-            const lastModified = response.headers.get('Last-Modified');
-
-            return response.text().then(csv => ({ csv, lastModified }));
-        })
-        .then(({ csv, lastModified }) => {
+    fetchTextFile(`${path}?v=${Date.now()}`) // Cache busting
+        .then(csv => {
             const jsonArray = csvStringToJsonArray(csv);
             gridApi.setGridOption('rowData', jsonArray);
             updateResourceTypeCharts(jsonArray);
             document.getElementById('downloadCsvBtnLabel').textContent = `Download ${slug}.csv`;
             document.getElementById('downloadXlsxBtnLabel').textContent = `Download ${slug}.xlsx`;
-
-            const lastUpdate = lastModified ? new Date(lastModified) : null;
-            document.getElementById('lastUpdate').textContent =
-                lastUpdate && !Number.isNaN(lastUpdate.getTime())
-                    ? lastUpdate.toISOString().split('T')[0]
-                    : 'Unknown';
         })
         .catch(err => {
             gridApi.setGridOption('rowData', []);
             updateResourceTypeCharts([]);
             alert('Could not load CSV "' + slug + '.csv": ' + err.message);
         });
+    loadLastUpdated(slug);
 }
 
 
