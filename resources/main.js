@@ -1,81 +1,268 @@
 const GITHUB_REPO = 'snd-sweden/roagg-output';
+const ORGANISATIONS_PATH = 'resources/organisations.tsv';
+const OUTPUTS_DIRECTORY = 'outputs';
+const UNKNOWN_VALUE = 'Unknown';
 
-// Row Data Interface
+const GENERIC_RESOURCE_TYPE_COLOR = '#9ca3af';
+const PUBLICATION_YEAR_COLOR = '#1e3963';
 
-// Grid API: Access to Grid API methods
-let gridApi;
-let resourceTypeBarChart;
-let resourceTypePieChart;
-let publicationYearBarChart;
 
-// Grid Options: Contains all of the grid configurations
+/* ==========================================================================
+   Resource type colors
+   ========================================================================== */
+
+const RESOURCE_TYPE_COLORS = {
+    Article: '#1e3963',
+    Audiovisual: '#3498db',
+    Award: '#85b9de',
+    Book: '#2f855a',
+    BookChapter: '#f59e0b',
+    Collection: '#e11d48',
+    ComputationalNotebook: '#6d28d9',
+    ConferencePaper: '#0f766e',
+    ConferenceProceeding: '#b45309',
+    DataPaper: '#475569',
+    Dataset: '#0369a1',
+    Dissertation: '#15803d',
+    Event: '#7c3aed',
+    Image: '#0284c7',
+    InteractiveResource: '#059669',
+    Journal: '#d97706',
+    JournalArticle: '#dc2626',
+    Model: '#9333ea',
+    Other: '#0891b2',
+    OutputManagementPlan: '#65a30d',
+    PeerReview: '#ca8a04',
+    PhysicalObject: '#c2410c',
+    Poster: '#be185d',
+    Preprint: '#4f46e5',
+    Presentation: '#0d9488',
+    Project: '#16a34a',
+    Report: '#ea580c',
+    Software: '#db2777',
+    Sound: '#8b5cf6',
+    Standard: '#2563eb',
+    StudyRegistration: '#10b981',
+    Text: '#f97316',
+    Workflow: '#a855f7'
+};
+
+
+/* ==========================================================================
+   DOM element IDs
+   ========================================================================== */
+
+const DOM_IDS = {
+    grid: 'myGrid',
+    organisationSelect: 'orgSelect',
+    gridTab: 'grid-tab',
+
+    downloadCsvButton: 'downloadCsvBtn',
+    downloadXlsxButton: 'downloadXlsxBtn',
+    downloadCsvLabel: 'downloadCsvBtnLabel',
+    downloadXlsxLabel: 'downloadXlsxBtnLabel',
+
+    lastUpdate: 'lastUpdate',
+
+    resourceTypeBarChart: 'resourceTypeBarChart',
+    resourceTypePieChart: 'resourceTypePieChart',
+    publicationYearBarChart: 'publicationYearBarChart'
+};
+
+
+/* ==========================================================================
+   Chart state
+   ========================================================================== */
+
+const chartInstances = {
+    resourceTypeBar: null,
+    resourceTypePie: null,
+    publicationYearBar: null
+};
+
+
+/* ==========================================================================
+   Grid configuration
+   ========================================================================== */
+
 const gridOptions = {
     pagination: true,
     scrollbars: true,
+
     rowSelection: {
         mode: 'multiRow',
         copySelectedRows: true
     },
-    // Data to be displayed
-    rowData: [], 
-    // Columns to be displayed (Should match rowData properties)
+
+    rowData: [],
+
     columnDefs: [
-        { field: "doi",
-            cellRenderer: params => {
-                if (!params.value) return '';
-                return `<a href="https://doi.org/${params.value}" target="_blank" rel="noopener noreferrer">${params.value}</a>`;
-            } 
+        {
+            field: 'doi',
+            cellRenderer: ({ value }) => {
+                if (!value) {
+                    return '';
+                }
+
+                return `
+                    <a
+                        href="https://doi.org/${value}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        ${value}
+                    </a>
+                `;
+            }
         },
-        { field: "dataCiteClientName", filter: true, floatingFilter: true  },
-        { field: "publicationYear", filter: true, floatingFilter: true  },
-        { field: "resourceType", filter: true, floatingFilter: true  },
-        { field: "title", filter: true, floatingFilter: true  },
-        { field: "publisher", filter: true, floatingFilter: true  },
-        { field: "isPublisher", filter: true, floatingFilter: true  },
-        { field: "isLatestVersion", filter: true, floatingFilter: true  },
-        { field: "isConceptDoi", filter: true, floatingFilter: true  },
-        { field: "createdAt" },
-        { field: "updatedAt" },
-        { field: "inDataCite", filter: true, floatingFilter: true },
-        { field: "inOpenAire", filter: true, floatingFilter: true },
-        { field: "inOpenAlex", filter: true, floatingFilter: true  }
+
+        {
+            field: 'dataCiteClientName',
+            filter: true,
+            floatingFilter: true
+        },
+        {
+            field: 'publicationYear',
+            filter: true,
+            floatingFilter: true
+        },
+        {
+            field: 'resourceType',
+            filter: true,
+            floatingFilter: true
+        },
+        {
+            field: 'title',
+            filter: true,
+            floatingFilter: true
+        },
+        {
+            field: 'publisher',
+            filter: true,
+            floatingFilter: true
+        },
+        {
+            field: 'isPublisher',
+            filter: true,
+            floatingFilter: true
+        },
+        {
+            field: 'isLatestVersion',
+            filter: true,
+            floatingFilter: true
+        },
+        {
+            field: 'isConceptDoi',
+            filter: true,
+            floatingFilter: true
+        },
+        {
+            field: 'createdAt'
+        },
+        {
+            field: 'updatedAt'
+        },
+        {
+            field: 'inDataCite',
+            filter: true,
+            floatingFilter: true
+        },
+        {
+            field: 'inOpenAire',
+            filter: true,
+            floatingFilter: true
+        },
+        {
+            field: 'inOpenAlex',
+            filter: true,
+            floatingFilter: true
+        }
     ],
+
     defaultColDef: {
-        flex: 1,
+        flex: 1
     }
 };
-// Create Grid: Create new grid within the #myGrid div, using the Grid Options object
-gridApi = agGrid.createGrid(document.querySelector("#myGrid"), gridOptions);
 
 
-// Read a CSV string and convert it to a JSON array using PapaParse
-function csvStringToJsonArray(csv) {
-    return Papa.parse(csv, {
+const gridElement = document.getElementById(DOM_IDS.grid);
+const gridApi = agGrid.createGrid(gridElement, gridOptions);
+
+
+/* ==========================================================================
+   General utilities
+   ========================================================================== */
+
+function getElement(id) {
+    return document.getElementById(id);
+}
+
+
+function outputPath(slug) {
+    return `${OUTPUTS_DIRECTORY}/${slug}.csv`;
+}
+
+
+function normalizeString(value) {
+    return typeof value === 'string'
+        ? value.trim()
+        : '';
+}
+
+
+/* ==========================================================================
+   File loading and parsing
+   ========================================================================== */
+
+function parseDelimitedText(text) {
+    return Papa.parse(text, {
         header: true,
         skipEmptyLines: true,
         dynamicTyping: false
     }).data;
 }
 
-// Fetch a text file (csv or tsv) from the server
-function fetchTextFile(path) {
-    return fetch(path).then(r => {
-        if (!r.ok) throw new Error('Failed to fetch ' + path);
-        return r.text();
-    });
+
+async function fetchTextFile(path) {
+    const response = await fetch(path);
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch ${path}`);
+    }
+
+    return response.text();
 }
 
-function downloadCsvFile(csv, filename) {
-    const blob = new Blob([csv], { type: 'text/csv' });
+
+/* ==========================================================================
+   Downloads
+   ========================================================================== */
+
+function downloadBlob(blob, filename) {
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = filename;
+
+    document.body.appendChild(link);
+
+    link.click();
+    link.remove();
+
     URL.revokeObjectURL(url);
 }
+
+
+function downloadCsvFile(csv, filename) {
+    const blob = new Blob(
+        [csv],
+        { type: 'text/csv' }
+    );
+
+    downloadBlob(blob, filename);
+}
+
 
 function downloadXlsxFile(csv, filename) {
     const rows = Papa.parse(csv, {
@@ -85,137 +272,175 @@ function downloadXlsxFile(csv, filename) {
     const worksheet = XLSX.utils.aoa_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
-    XLSX.writeFile(workbook, filename);
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        'Data'
+    );
+
+    XLSX.writeFile(
+        workbook,
+        filename
+    );
 }
+
+
+/* ==========================================================================
+   Data normalization
+   ========================================================================== */
+
+function normalizeResourceType(value) {
+    return normalizeString(value) || UNKNOWN_VALUE;
+}
+
+
+function normalizePublicationYear(value) {
+    if (
+        typeof value !== 'string' &&
+        typeof value !== 'number'
+    ) {
+        return UNKNOWN_VALUE;
+    }
+
+    return String(value).trim() || UNKNOWN_VALUE;
+}
+
+
+/* ==========================================================================
+   Data aggregation
+   ========================================================================== */
+
+function countBy(rows, getKey) {
+    const counts = new Map();
+
+    for (const row of rows) {
+        const key = getKey(row);
+
+        counts.set(
+            key,
+            (counts.get(key) || 0) + 1
+        );
+    }
+
+    return [...counts.entries()];
+}
+
 
 function getResourceTypeCounts(rows) {
-    const counts = new Map();
-
-    rows.forEach(row => {
-        const rawValue = row.resourceType;
-        const key = (typeof rawValue === 'string' && rawValue.trim() !== '') ? rawValue.trim() : 'Unknown';
-        counts.set(key, (counts.get(key) || 0) + 1);
-    });
-
-    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    return countBy(
+        rows,
+        row => normalizeResourceType(row.resourceType)
+    ).sort(
+        (a, b) => b[1] - a[1]
+    );
 }
+
 
 function getPublicationYearCounts(rows) {
-    const counts = new Map();
-
-    rows.forEach(row => {
-        const rawValue = row.publicationYear;
-        const key = (typeof rawValue === 'string' || typeof rawValue === 'number')
-            ? String(rawValue).trim()
-            : '';
-        const normalizedKey = key !== '' ? key : 'Unknown';
-        counts.set(normalizedKey, (counts.get(normalizedKey) || 0) + 1);
-    });
-
-    return [...counts.entries()].sort((a, b) => {
-        const aNum = Number(a[0]);
-        const bNum = Number(b[0]);
-        const aIsNumber = Number.isFinite(aNum);
-        const bIsNumber = Number.isFinite(bNum);
-
-        if (aIsNumber && bIsNumber) return aNum - bNum;
-        if (aIsNumber) return -1;
-        if (bIsNumber) return 1;
-        return a[0].localeCompare(b[0]);
-    });
+    return countBy(
+        rows,
+        row => normalizePublicationYear(row.publicationYear)
+    ).sort(
+        ([yearA], [yearB]) =>
+            comparePublicationYears(yearA, yearB)
+    );
 }
 
-function paletteFor(length) {
-    const base = [
-        '#1e3963', '#3498db', '#85b9de', '#2f855a', '#f59e0b', '#e11d48',
-        '#6d28d9', '#0f766e', '#b45309', '#475569', '#0369a1', '#15803d'
-    ];
-    const colors = [];
 
-    for (let i = 0; i < length; i += 1) {
-        colors.push(base[i % base.length]);
+function comparePublicationYears(yearA, yearB) {
+    const numberA = Number(yearA);
+    const numberB = Number(yearB);
+
+    const aIsNumber = Number.isFinite(numberA);
+    const bIsNumber = Number.isFinite(numberB);
+
+    if (aIsNumber && bIsNumber) {
+        return numberA - numberB;
     }
 
-    return colors;
+    if (aIsNumber) {
+        return -1;
+    }
+
+    if (bIsNumber) {
+        return 1;
+    }
+
+    return yearA.localeCompare(yearB);
 }
 
-function updateResourceTypeCharts(rows) {
-    const barCanvas = document.getElementById('resourceTypeBarChart');
-    const pieCanvas = document.getElementById('resourceTypePieChart');
-    const publicationYearCanvas = document.getElementById('publicationYearBarChart');
 
-    if (!barCanvas || !pieCanvas || !publicationYearCanvas || typeof Chart === 'undefined') {
-        return;
-    }
+function splitCounts(counts) {
+    return {
+        labels: counts.map(
+            ([label]) => label
+        ),
 
-    const publicationYearCounts = getPublicationYearCounts(rows);
-    const publicationYearLabels = publicationYearCounts.map(item => item[0]);
-    const publicationYearValues = publicationYearCounts.map(item => item[1]);
+        values: counts.map(
+            ([, count]) => count
+        )
+    };
+}
 
-    if (publicationYearBarChart) {
-        publicationYearBarChart.destroy();
-    }
-    publicationYearBarChart = new Chart(publicationYearCanvas, {
+
+/* ==========================================================================
+   Resource type colors
+   ========================================================================== */
+
+function getResourceTypeColor(resourceType) {
+    return (
+        RESOURCE_TYPE_COLORS[resourceType] ||
+        GENERIC_RESOURCE_TYPE_COLOR
+    );
+}
+
+
+/* ==========================================================================
+   Charts
+   ========================================================================== */
+
+function destroyChart(chartKey) {
+    chartInstances[chartKey]?.destroy();
+    chartInstances[chartKey] = null;
+}
+
+
+function createBarChart(
+    canvas,
+    labels,
+    values,
+    backgroundColor
+) {
+    return new Chart(canvas, {
         type: 'bar',
-        data: {
-            labels: publicationYearLabels,
-            datasets: [{
-                label: 'Outputs',
-                data: publicationYearValues,
-                backgroundColor: '#1e3963',
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
-                    }
-                }
-            }
-        }
-    });
 
-    const counts = getResourceTypeCounts(rows);
-    const labels = counts.map(item => item[0]);
-    const values = counts.map(item => item[1]);
-    const colors = paletteFor(labels.length);
-
-    if (resourceTypeBarChart) {
-        resourceTypeBarChart.destroy();
-    }
-    resourceTypeBarChart = new Chart(barCanvas, {
-        type: 'bar',
         data: {
             labels,
-            datasets: [{
-                label: 'Outputs',
-                data: values,
-                backgroundColor: colors,
-                borderWidth: 0
-            }]
+
+            datasets: [
+                {
+                    label: 'Outputs',
+                    data: values,
+                    backgroundColor,
+                    borderWidth: 0
+                }
+            ]
         },
+
         options: {
             responsive: true,
             maintainAspectRatio: false,
+
             plugins: {
                 legend: {
                     display: false
                 }
             },
+
             scales: {
                 y: {
                     beginAtZero: true,
+
                     ticks: {
                         precision: 0
                     }
@@ -223,24 +448,35 @@ function updateResourceTypeCharts(rows) {
             }
         }
     });
+}
 
-    if (resourceTypePieChart) {
-        resourceTypePieChart.destroy();
-    }
-    resourceTypePieChart = new Chart(pieCanvas, {
+
+function createDoughnutChart(
+    canvas,
+    labels,
+    values,
+    backgroundColor
+) {
+    return new Chart(canvas, {
         type: 'doughnut',
+
         data: {
             labels,
-            datasets: [{
-                data: values,
-                backgroundColor: colors,
-                borderWidth: 1,
-                borderColor: '#ffffff'
-            }]
+
+            datasets: [
+                {
+                    data: values,
+                    backgroundColor,
+                    borderWidth: 1,
+                    borderColor: '#ffffff'
+                }
+            ]
         },
+
         options: {
             responsive: true,
             maintainAspectRatio: false,
+
             plugins: {
                 legend: {
                     position: 'bottom'
@@ -250,141 +486,514 @@ function updateResourceTypeCharts(rows) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Load organisations.tsv and populate dropdown
-    fetchTextFile('resources/organisations.tsv').then(tsv => {
-        const orgs = csvStringToJsonArray(tsv);
-        // sort orgs by name_en using Swedish locale
-        orgs.sort((a, b) => a.name_en.localeCompare(b.name_en, 'sv-SE'));
-        const select = document.getElementById('orgSelect');
-        const downloadBtn = document.getElementById('downloadCsvBtn');
-        const downloadXlsxBtn = document.getElementById('downloadXlsxBtn');
-        const gridTab = document.getElementById('grid-tab');
 
-        if (gridTab) {
-            gridTab.addEventListener('shown.bs.tab', function() {
-                if (gridApi) {
-                    gridApi.sizeColumnsToFit();
-                }
-            });
-        }
+function updateCharts(rows) {
+    if (typeof Chart === 'undefined') {
+        return;
+    }
 
-        orgs.forEach(org => {
-            const opt = document.createElement('option');
-            opt.value = org.slug;
-            opt.textContent = org.name_en + ' (' + org.slug + ')';
-            select.appendChild(opt);
-        });
-        // Check if there's a hash in the URL and select that org
-        let initialSlug = null;
-        if (window.location.hash) {
-            const hashSlug = window.location.hash.substring(1); // Remove the '#'
-            // Check if this slug exists in our orgs
-            const foundOrg = orgs.find(org => org.slug === hashSlug);
-            if (foundOrg) {
-                initialSlug = hashSlug;
-            }
-        }
-        
-        // If no valid hash, select the first org
-        if (!initialSlug && orgs.length > 0) {
-            initialSlug = orgs[0].slug;
-        }
-        
-        if (initialSlug) {
-            select.value = initialSlug;
-            loadOrgCsv(initialSlug);
-            // Set the hash without triggering a reload
-            if (window.location.hash !== '#' + initialSlug) {
-                window.history.replaceState(null, '', '#' + initialSlug);
-            }
-        }
-        
-        select.addEventListener('change', function() {
-            const slug = this.value;
-            loadOrgCsv(slug);
-            // Update the URL hash
-            window.history.pushState(null, '', '#' + slug);
-        });
-        
-        // Handle browser back/forward navigation
-        window.addEventListener('hashchange', function() {
-            const hashSlug = window.location.hash.substring(1);
-            if (hashSlug && select.value !== hashSlug) {
-                const foundOrg = orgs.find(org => org.slug === hashSlug);
-                if (foundOrg) {
-                    select.value = hashSlug;
-                    loadOrgCsv(hashSlug);
-                }
-            }
-        });
+    const resourceTypeBarCanvas =
+        getElement(DOM_IDS.resourceTypeBarChart);
 
-        // Download CSV button functionality
-        downloadBtn.addEventListener('click', function() {
-            const slug = select.value;
-            const path = `outputs/${slug}.csv`;
-            fetchTextFile(path)
-                .then(csv => {
-                    downloadCsvFile(csv, `${slug}.csv`);
-                })
-                .catch(err => {
-                    alert('Could not download CSV for ' + slug + ': ' + err.message);
-                }
-            );
-        });
+    const resourceTypePieCanvas =
+        getElement(DOM_IDS.resourceTypePieChart);
 
-        downloadXlsxBtn.addEventListener('click', function() {
-            const slug = select.value;
-            const path = `outputs/${slug}.csv`;
-            fetchTextFile(path)
-                .then(csv => {
-                    downloadXlsxFile(csv, `${slug}.xlsx`);
-                })
-                .catch(err => {
-                    alert('Could not download XLSX for ' + slug + ': ' + err.message);
-                }
-            );
-        });
-    });
-});
+    const publicationYearCanvas =
+        getElement(DOM_IDS.publicationYearBarChart);
 
-function loadLastUpdated(slug) {
-    // GitHub Pages doesn't reliably expose a Last-Modified header, so we ask the
-    // GitHub API for the last commit that touched this org's CSV instead.
-    const apiUrl = `https://api.github.com/repos/${GITHUB_REPO}/commits?path=outputs/${slug}.csv&per_page=1`;
-    fetch(apiUrl)
-        .then(r => {
-            if (!r.ok) throw new Error('Failed to fetch commit info');
-            return r.json();
-        })
-        .then(commits => {
-            const date = commits[0] && new Date(commits[0].commit.committer.date);
-            document.getElementById('lastUpdate').textContent =
-                date && !Number.isNaN(date.getTime())
-                    ? date.toISOString().split('T')[0]
-                    : 'Unknown';
-        })
-        .catch(() => {
-            document.getElementById('lastUpdate').textContent = 'Unknown';
-        });
+    if (
+        !resourceTypeBarCanvas ||
+        !resourceTypePieCanvas ||
+        !publicationYearCanvas
+    ) {
+        return;
+    }
+
+
+    /*
+     * Prepare publication year data
+     */
+
+    const publicationYears = splitCounts(
+        getPublicationYearCounts(rows)
+    );
+
+
+    /*
+     * Prepare resource type data
+     */
+
+    const resourceTypes = splitCounts(
+        getResourceTypeCounts(rows)
+    );
+
+    const resourceTypeColors =
+        resourceTypes.labels.map(
+            getResourceTypeColor
+        );
+
+
+    /*
+     * Publication year bar chart
+     */
+
+    destroyChart('publicationYearBar');
+
+    chartInstances.publicationYearBar =
+        createBarChart(
+            publicationYearCanvas,
+            publicationYears.labels,
+            publicationYears.values,
+            PUBLICATION_YEAR_COLOR
+        );
+
+
+    /*
+     * Resource type bar chart
+     */
+
+    destroyChart('resourceTypeBar');
+
+    chartInstances.resourceTypeBar =
+        createBarChart(
+            resourceTypeBarCanvas,
+            resourceTypes.labels,
+            resourceTypes.values,
+            resourceTypeColors
+        );
+
+
+    /*
+     * Resource type doughnut chart
+     */
+
+    destroyChart('resourceTypePie');
+
+    chartInstances.resourceTypePie =
+        createDoughnutChart(
+            resourceTypePieCanvas,
+            resourceTypes.labels,
+            resourceTypes.values,
+            resourceTypeColors
+        );
 }
 
-function loadOrgCsv(slug) {
-    const path = `outputs/${slug}.csv`;
-    fetchTextFile(`${path}?v=${Date.now()}`) // Cache busting
-        .then(csv => {
-            const jsonArray = csvStringToJsonArray(csv);
-            gridApi.setGridOption('rowData', jsonArray);
-            updateResourceTypeCharts(jsonArray);
-            document.getElementById('downloadCsvBtnLabel').textContent = `Download ${slug}.csv`;
-            document.getElementById('downloadXlsxBtnLabel').textContent = `Download ${slug}.xlsx`;
-        })
-        .catch(err => {
-            gridApi.setGridOption('rowData', []);
-            updateResourceTypeCharts([]);
-            alert('Could not load CSV "' + slug + '.csv": ' + err.message);
-        });
+
+/* ==========================================================================
+   UI updates
+   ========================================================================== */
+
+function setDownloadLabels(slug) {
+    const csvLabel =
+        getElement(DOM_IDS.downloadCsvLabel);
+
+    const xlsxLabel =
+        getElement(DOM_IDS.downloadXlsxLabel);
+
+    if (csvLabel) {
+        csvLabel.textContent =
+            `Download ${slug}.csv`;
+    }
+
+    if (xlsxLabel) {
+        xlsxLabel.textContent =
+            `Download ${slug}.xlsx`;
+    }
+}
+
+
+function setLastUpdated(value) {
+    const element =
+        getElement(DOM_IDS.lastUpdate);
+
+    if (element) {
+        element.textContent = value;
+    }
+}
+
+
+/* ==========================================================================
+   Last updated information
+   ========================================================================== */
+
+async function loadLastUpdated(slug) {
+    const apiUrl =
+        `https://api.github.com/repos/${GITHUB_REPO}` +
+        `/commits?path=${outputPath(slug)}&per_page=1`;
+
+    try {
+        const response = await fetch(apiUrl);
+
+        if (!response.ok) {
+            throw new Error(
+                'Failed to fetch commit info'
+            );
+        }
+
+        const commits =
+            await response.json();
+
+        const commitDate =
+            commits[0]?.commit?.committer?.date;
+
+        const date =
+            commitDate
+                ? new Date(commitDate)
+                : null;
+
+        const formattedDate =
+            date &&
+            !Number.isNaN(date.getTime())
+                ? date.toISOString().split('T')[0]
+                : UNKNOWN_VALUE;
+
+        setLastUpdated(formattedDate);
+
+    } catch {
+        setLastUpdated(UNKNOWN_VALUE);
+    }
+}
+
+
+/* ==========================================================================
+   Organisation data
+   ========================================================================== */
+
+async function loadOrganisationData(slug) {
+    const path = outputPath(slug);
+
+    try {
+        /*
+         * Timestamp prevents the browser from returning
+         * a cached version of the CSV.
+         */
+        const csv = await fetchTextFile(
+            `${path}?v=${Date.now()}`
+        );
+
+        const rows =
+            parseDelimitedText(csv);
+
+        gridApi.setGridOption(
+            'rowData',
+            rows
+        );
+
+        updateCharts(rows);
+        setDownloadLabels(slug);
+
+    } catch (error) {
+        gridApi.setGridOption(
+            'rowData',
+            []
+        );
+
+        updateCharts([]);
+
+        alert(
+            `Could not load CSV "${slug}.csv": ` +
+            error.message
+        );
+    }
+
+    /*
+     * GitHub commit information is independent from
+     * the CSV request, so it does not need to block it.
+     */
     loadLastUpdated(slug);
 }
 
 
+/* ==========================================================================
+   Organisation selector
+   ========================================================================== */
+
+function populateOrganisationSelect(
+    select,
+    organisations
+) {
+    const fragment =
+        document.createDocumentFragment();
+
+    for (const organisation of organisations) {
+        const option =
+            document.createElement('option');
+
+        option.value =
+            organisation.slug;
+
+        option.textContent =
+            `${organisation.name_en} ` +
+            `(${organisation.slug})`;
+
+        fragment.appendChild(option);
+    }
+
+    select.appendChild(fragment);
+}
+
+
+function findInitialSlug(organisations) {
+    const hashSlug =
+        window.location.hash.slice(1);
+
+    const slugExists =
+        organisations.some(
+            ({ slug }) => slug === hashSlug
+        );
+
+    if (hashSlug && slugExists) {
+        return hashSlug;
+    }
+
+    return organisations[0]?.slug || null;
+}
+
+
+function selectOrganisation(
+    select,
+    slug,
+    { updateHistory = false } = {}
+) {
+    select.value = slug;
+
+    loadOrganisationData(slug);
+
+    if (updateHistory) {
+        window.history.pushState(
+            null,
+            '',
+            `#${slug}`
+        );
+    }
+}
+
+
+/* ==========================================================================
+   Event handlers
+   ========================================================================== */
+
+function setupGridTabResize() {
+    const gridTab =
+        getElement(DOM_IDS.gridTab);
+
+    gridTab?.addEventListener(
+        'shown.bs.tab',
+        () => {
+            gridApi.sizeColumnsToFit();
+        }
+    );
+}
+
+
+function setupOrganisationNavigation(
+    select,
+    organisations
+) {
+    /*
+     * Organisation changed through dropdown
+     */
+
+    select.addEventListener(
+        'change',
+        () => {
+            selectOrganisation(
+                select,
+                select.value,
+                { updateHistory: true }
+            );
+        }
+    );
+
+
+    /*
+     * Browser back/forward navigation
+     */
+
+    window.addEventListener(
+        'hashchange',
+        () => {
+            const hashSlug =
+                window.location.hash.slice(1);
+
+            const slugExists =
+                organisations.some(
+                    ({ slug }) =>
+                        slug === hashSlug
+                );
+
+            if (
+                hashSlug &&
+                slugExists &&
+                select.value !== hashSlug
+            ) {
+                selectOrganisation(
+                    select,
+                    hashSlug
+                );
+            }
+        }
+    );
+}
+
+
+function setupDownloadButton(
+    buttonId,
+    select,
+    format
+) {
+    const button =
+        getElement(buttonId);
+
+    if (!button) {
+        return;
+    }
+
+    button.addEventListener(
+        'click',
+        async () => {
+            const slug = select.value;
+            const path = outputPath(slug);
+
+            try {
+                const csv =
+                    await fetchTextFile(path);
+
+                if (format === 'csv') {
+                    downloadCsvFile(
+                        csv,
+                        `${slug}.csv`
+                    );
+
+                    return;
+                }
+
+                downloadXlsxFile(
+                    csv,
+                    `${slug}.xlsx`
+                );
+
+            } catch (error) {
+                alert(
+                    `Could not download ` +
+                    `${format.toUpperCase()} ` +
+                    `for ${slug}: ${error.message}`
+                );
+            }
+        }
+    );
+}
+
+
+/* ==========================================================================
+   Application initialization
+   ========================================================================== */
+
+async function initializeApp() {
+    const select =
+        getElement(
+            DOM_IDS.organisationSelect
+        );
+
+    if (!select) {
+        return;
+    }
+
+    try {
+        /*
+         * Load organisations
+         */
+
+        const tsv =
+            await fetchTextFile(
+                ORGANISATIONS_PATH
+            );
+
+        const organisations =
+            parseDelimitedText(tsv)
+                .sort(
+                    (a, b) =>
+                        a.name_en.localeCompare(
+                            b.name_en,
+                            'sv-SE'
+                        )
+                );
+
+
+        /*
+         * Build UI
+         */
+
+        populateOrganisationSelect(
+            select,
+            organisations
+        );
+
+        setupGridTabResize();
+
+        setupOrganisationNavigation(
+            select,
+            organisations
+        );
+
+        setupDownloadButton(
+            DOM_IDS.downloadCsvButton,
+            select,
+            'csv'
+        );
+
+        setupDownloadButton(
+            DOM_IDS.downloadXlsxButton,
+            select,
+            'xlsx'
+        );
+
+
+        /*
+         * Select initial organisation
+         */
+
+        const initialSlug =
+            findInitialSlug(
+                organisations
+            );
+
+        if (!initialSlug) {
+            return;
+        }
+
+        select.value = initialSlug;
+
+        loadOrganisationData(
+            initialSlug
+        );
+
+
+        /*
+         * Make sure the URL contains the selected org
+         */
+
+        if (
+            window.location.hash !==
+            `#${initialSlug}`
+        ) {
+            window.history.replaceState(
+                null,
+                '',
+                `#${initialSlug}`
+            );
+        }
+
+    } catch (error) {
+        console.error(
+            'Could not initialize application:',
+            error
+        );
+    }
+}
+
+
+document.addEventListener(
+    'DOMContentLoaded',
+    initializeApp
+);
