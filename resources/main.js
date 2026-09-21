@@ -12,39 +12,54 @@ const PUBLICATION_YEAR_COLOR = '#1e3963';
    ========================================================================== */
 
 const RESOURCE_TYPE_COLORS = {
-    Article: '#1e3963',
-    Audiovisual: '#3498db',
-    Award: '#85b9de',
-    Book: '#2f855a',
-    BookChapter: '#f59e0b',
-    Collection: '#e11d48',
-    ComputationalNotebook: '#6d28d9',
-    ConferencePaper: '#0f766e',
-    ConferenceProceeding: '#b45309',
-    DataPaper: '#475569',
-    Dataset: '#0369a1',
-    Dissertation: '#15803d',
-    Event: '#7c3aed',
-    Image: '#0284c7',
-    InteractiveResource: '#059669',
-    Journal: '#d97706',
-    JournalArticle: '#dc2626',
-    Model: '#9333ea',
-    Other: '#0891b2',
-    OutputManagementPlan: '#65a30d',
-    PeerReview: '#ca8a04',
-    PhysicalObject: '#c2410c',
-    Poster: '#be185d',
-    Preprint: '#4f46e5',
-    Presentation: '#0d9488',
-    Project: '#16a34a',
-    Report: '#ea580c',
-    Software: '#db2777',
-    Sound: '#8b5cf6',
-    Standard: '#2563eb',
-    StudyRegistration: '#10b981',
-    Text: '#f97316',
-    Workflow: '#a855f7'
+    // Articles / established publications – blue
+    Article: '#0000ff',
+    JournalArticle: '#163ccf',
+    Journal: '#315fdb',
+    Book: '#234f9e',
+    BookChapter: '#5278e8',
+
+    // Conference contributions – light blue / cyan
+    ConferencePaper: '#5ae0f3',
+    ConferenceProceeding: '#29bcd3',
+    Presentation: '#71cbdc',
+    Poster: '#3da8c2',
+
+    // Preprints and other text publications – purple
+    Preprint: '#9e41d8',
+    Text: '#ea8ef6',
+    Dissertation: '#7651c9',
+    Report: '#b568d8',
+    Standard: '#6853a6',
+    PeerReview: '#d17cdb',
+
+    // Data – red
+    Dataset: '#fd312d',
+    DataPaper: '#d94a52',
+    StudyRegistration: '#e46767',
+    OutputManagementPlan: '#c93b72',
+
+    // Audio / video / images – red and coral tones
+    Audiovisual: '#f59a57',
+    Sound: '#ef765f',
+    Image: '#f3b078',
+    InteractiveResource: '#e98672',
+
+    // Software – yellow
+    Software: '#f5eb58',
+
+    // Models / notebooks / workflows – green
+    Model: '#258c53',
+    ComputationalNotebook: '#48b86b',
+    Workflow: '#79c65a',
+
+    // Other outputs – orange / yellow / green
+    Award: '#f6c445',
+    Collection: '#f28c28',
+    Event: '#d9ad32',
+    PhysicalObject: '#a6bd43',
+    Project: '#56a96b',
+    Other: '#e5a63b'
 };
 
 
