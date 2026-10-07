@@ -34,14 +34,22 @@
     <p>
       Simple tool for viewing and filtering output from the <a href="https://github.com/snd-sweden/roagg" target="_blank" rel="noopener noreferrer">SND Research Output Aggregator</a>. <br/>
     </p>
+    <div id="orgListView" hidden>
+      <table class="table table-hover">
+        <thead>
+          <tr><th>Organisation</th><th>Id</th></tr>
+        </thead>
+        <tbody id="orgTableBody"></tbody>
+      </table>
+    </div>
+
+    <div id="orgDetailView" hidden>
+    <p><a href="#" id="backLink">&larr; All organisations</a></p>
+    <h2 id="orgTitle" class="h4"></h2>
     <p class="note">
       This grid only shows a limited set of columns from the full output. <br/>Download the full CSV or XLSX file for the selected organisation using the "Download" button.
     </p>
     <div class="row g-2 align-items-end mb-3">
-      <div class="col-12 col-md-auto">
-        <label for="orgSelect" class="form-label">Select organisation:</label>
-        <select id="orgSelect" class="form-select"></select>
-      </div>
       <div class="col-12 col-md-auto">
         <button id="downloadCsvBtn" class="btn btn-secondary btn-snd w-100 w-md-auto" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-arrow-down" viewBox="0 0 16 16">
@@ -120,6 +128,7 @@
           </div>
         </section>
       </div>
+    </div>
     </div>
     
     <script>

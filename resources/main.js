@@ -69,7 +69,10 @@ const RESOURCE_TYPE_COLORS = {
 
 const DOM_IDS = {
     grid: 'myGrid',
-    organisationSelect: 'orgSelect',
+    listView: 'orgListView',
+    detailView: 'orgDetailView',
+    tableBody: 'orgTableBody',
+    title: 'orgTitle',
     gridTab: 'grid-tab',
 
     downloadCsvButton: 'downloadCsvBtn',
@@ -723,64 +726,58 @@ async function loadOrganisationData(slug) {
    Organisation selector
    ========================================================================== */
 
-function populateOrganisationSelect(
-    select,
-    organisations
-) {
-    const fragment =
-        document.createDocumentFragment();
+let currentSlug = null;
+
+
+function populateOrganisationTable(organisations) {
+    const tbody = getElement(DOM_IDS.tableBody);
 
     for (const organisation of organisations) {
-        const option =
-            document.createElement('option');
+        const row = document.createElement('tr');
+        const nameCell = document.createElement('td');
+        const slugCell = document.createElement('td');
+        const link = document.createElement('a');
 
-        option.value =
-            organisation.slug;
+        link.href = `#${organisation.slug}`;
+        link.textContent = organisation.name_en;
+        nameCell.appendChild(link);
+        slugCell.textContent = organisation.slug;
 
-        option.textContent =
-            `${organisation.name_en} ` +
-            `(${organisation.slug})`;
-
-        fragment.appendChild(option);
+        row.append(nameCell, slugCell);
+        tbody.appendChild(row);
     }
-
-    select.appendChild(fragment);
 }
 
 
-function findInitialSlug(organisations) {
+function showOrganisationFromHash(organisations) {
     const hashSlug =
-        window.location.hash.slice(1);
+        decodeURIComponent(window.location.hash.slice(1));
 
-    const slugExists =
-        organisations.some(
-            ({ slug }) => slug === hashSlug
-        );
+    const organisation =
+        organisations.find(({ slug }) => slug === hashSlug);
 
-    if (hashSlug && slugExists) {
-        return hashSlug;
+    const listView = getElement(DOM_IDS.listView);
+    const detailView = getElement(DOM_IDS.detailView);
+
+    if (!organisation) {
+        currentSlug = null;
+        detailView.hidden = true;
+        listView.hidden = false;
+        return;
     }
 
-    return organisations[0]?.slug || null;
-}
+    listView.hidden = true;
+    detailView.hidden = false;
 
+    getElement(DOM_IDS.title).textContent =
+        `${organisation.name_en} (${organisation.slug})`;
 
-function selectOrganisation(
-    select,
-    slug,
-    { updateHistory = false } = {}
-) {
-    select.value = slug;
-
-    loadOrganisationData(slug);
-
-    if (updateHistory) {
-        window.history.pushState(
-            null,
-            '',
-            `#${slug}`
-        );
+    if (currentSlug !== organisation.slug) {
+        currentSlug = organisation.slug;
+        loadOrganisationData(organisation.slug);
     }
+
+    gridApi.sizeColumnsToFit();
 }
 
 
@@ -801,60 +798,16 @@ function setupGridTabResize() {
 }
 
 
-function setupOrganisationNavigation(
-    select,
-    organisations
-) {
-    /*
-     * Organisation changed through dropdown
-     */
-
-    select.addEventListener(
-        'change',
-        () => {
-            selectOrganisation(
-                select,
-                select.value,
-                { updateHistory: true }
-            );
-        }
-    );
-
-
-    /*
-     * Browser back/forward navigation
-     */
-
+function setupOrganisationNavigation(organisations) {
     window.addEventListener(
         'hashchange',
-        () => {
-            const hashSlug =
-                window.location.hash.slice(1);
-
-            const slugExists =
-                organisations.some(
-                    ({ slug }) =>
-                        slug === hashSlug
-                );
-
-            if (
-                hashSlug &&
-                slugExists &&
-                select.value !== hashSlug
-            ) {
-                selectOrganisation(
-                    select,
-                    hashSlug
-                );
-            }
-        }
+        () => showOrganisationFromHash(organisations)
     );
 }
 
 
 function setupDownloadButton(
     buttonId,
-    select,
     format
 ) {
     const button =
@@ -867,7 +820,12 @@ function setupDownloadButton(
     button.addEventListener(
         'click',
         async () => {
-            const slug = select.value;
+            const slug = currentSlug;
+
+            if (!slug) {
+                return;
+            }
+
             const path = outputPath(slug);
 
             try {
@@ -905,15 +863,6 @@ function setupDownloadButton(
    ========================================================================== */
 
 async function initializeApp() {
-    const select =
-        getElement(
-            DOM_IDS.organisationSelect
-        );
-
-    if (!select) {
-        return;
-    }
-
     try {
         /*
          * Load organisations
@@ -939,65 +888,23 @@ async function initializeApp() {
          * Build UI
          */
 
-        populateOrganisationSelect(
-            select,
-            organisations
-        );
+        populateOrganisationTable(organisations);
 
         setupGridTabResize();
 
-        setupOrganisationNavigation(
-            select,
-            organisations
-        );
+        setupOrganisationNavigation(organisations);
 
         setupDownloadButton(
             DOM_IDS.downloadCsvButton,
-            select,
             'csv'
         );
 
         setupDownloadButton(
             DOM_IDS.downloadXlsxButton,
-            select,
             'xlsx'
         );
 
-
-        /*
-         * Select initial organisation
-         */
-
-        const initialSlug =
-            findInitialSlug(
-                organisations
-            );
-
-        if (!initialSlug) {
-            return;
-        }
-
-        select.value = initialSlug;
-
-        loadOrganisationData(
-            initialSlug
-        );
-
-
-        /*
-         * Make sure the URL contains the selected org
-         */
-
-        if (
-            window.location.hash !==
-            `#${initialSlug}`
-        ) {
-            window.history.replaceState(
-                null,
-                '',
-                `#${initialSlug}`
-            );
-        }
+        showOrganisationFromHash(organisations);
 
     } catch (error) {
         console.error(
