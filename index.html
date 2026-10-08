@@ -102,6 +102,21 @@
       </div>
       <div class="tab-pane fade" id="statistics-pane" aria-labelledby="statistics-tab">
         <section class="statistics-section">
+          <div class="year-range-panel mb-3" id="yearRangePanel" hidden>
+            <div class="year-range-header">
+              <strong>Publication year range</strong>
+              <span id="yearRangeLabel" aria-live="polite"></span>
+            </div>
+            <div class="year-range-slider" aria-label="Publication year range">
+              <div class="year-range-track" aria-hidden="true"><div id="yearRangeFill" class="year-range-fill"></div></div>
+              <input id="yearFrom" type="range" aria-label="From year">
+              <input id="yearTo" type="range" aria-label="To year">
+            </div>
+            <div class="year-range-values">
+              <span>From: <strong id="yearFromValue"></strong></span>
+              <span>To: <strong id="yearToValue"></strong></span>
+            </div>
+          </div>
           <div class="chart-panel mb-3">
             <h3 class="h6 mb-2">Resources per Publication Year</h3>
             <div class="chart-wrap">

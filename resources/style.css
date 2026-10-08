@@ -381,3 +381,12 @@ p.note {
     line-height: 1em;
     padding: 0.5em 2.5em;
 }
+/* Statistics year range */
+.year-range-panel {    border: 1px solid #d0d5dd;    background: #fff;    padding: 1rem;}
+.year-range-header, .year-range-values {    display: flex;    justify-content: space-between;    gap: 1rem;    font-variant-numeric: tabular-nums;}
+.year-range-slider {    position: relative;    height: 32px;    margin: .65rem 0 .25rem;}
+.year-range-track {    position: absolute;    left: 0; right: 0; top: 14px;    height: 4px;    background: #d0d5dd;}
+.year-range-fill {    position: absolute;    height: 100%;    background: var(--input-accent);}
+.year-range-slider input[type='range'] {    position: absolute;    inset: 0;    width: 100%;    height: 32px;    margin: 0;    background: transparent;    pointer-events: none;    appearance: none;}.year-range-slider input[type='range']::-webkit-slider-runnable-track { height: 4px; background: transparent; }.year-range-slider input[type='range']::-webkit-slider-thumb {    appearance: none; width: 20px; height: 20px; margin-top: -8px;    border: 2px solid var(--input-accent); background: #fff; border-radius: 50% !important;    pointer-events: auto; cursor: pointer;}.year-range-slider input[type='range']::-moz-range-track { height: 4px; background: transparent; }.year-range-slider input[type='range']::-moz-range-thumb {    width: 18px; height: 18px; border: 2px solid var(--input-accent); background: #fff;    border-radius: 50% !important; pointer-events: auto; cursor: pointer;}
+
+@media (max-width: 480px) { .year-range-header, .year-range-values { flex-direction: column; gap: .25rem; } }

@@ -84,7 +84,14 @@ const DOM_IDS = {
 
     resourceTypeBarChart: 'resourceTypeBarChart',
     resourceTypePieChart: 'resourceTypePieChart',
-    publicationYearBarChart: 'publicationYearBarChart'
+    publicationYearBarChart: 'publicationYearBarChart',
+    yearRangePanel: 'yearRangePanel',
+    yearFrom: 'yearFrom',
+    yearTo: 'yearTo',
+    yearRangeLabel: 'yearRangeLabel',
+    yearRangeFill: 'yearRangeFill',
+    yearFromValue: 'yearFromValue',
+    yearToValue: 'yearToValue'
 };
 
 
@@ -97,6 +104,9 @@ const chartInstances = {
     resourceTypePie: null,
     publicationYearBar: null
 };
+
+let statisticsRows = [];
+let yearRangeInitialized = false;
 
 
 /* ==========================================================================
@@ -505,6 +515,90 @@ function createDoughnutChart(
 }
 
 
+function getNumericPublicationYear(row) {
+    const year = Number(normalizePublicationYear(row.publicationYear));
+    return Number.isInteger(year) ? year : null;
+}
+
+function filterRowsByYearRange(rows) {
+    const from = Number(getElement(DOM_IDS.yearFrom)?.value);
+    const to = Number(getElement(DOM_IDS.yearTo)?.value);
+    if (!Number.isFinite(from) || !Number.isFinite(to)) return rows;
+    return rows.filter(row => {
+        const year = getNumericPublicationYear(row);
+        return year !== null && year >= from && year <= to;
+    });
+}
+
+function updateYearRangeUi() {
+    const fromInput = getElement(DOM_IDS.yearFrom);
+    const toInput = getElement(DOM_IDS.yearTo);
+    if (!fromInput || !toInput) return;
+
+    let from = Number(fromInput.value);
+    let to = Number(toInput.value);
+    if (from > to) [from, to] = [to, from];
+
+    getElement(DOM_IDS.yearFromValue).textContent = from;
+    getElement(DOM_IDS.yearToValue).textContent = to;
+    getElement(DOM_IDS.yearRangeLabel).textContent = `${from}–${to}`;
+
+    const min = Number(fromInput.min);
+    const max = Number(fromInput.max);
+    const span = Math.max(1, max - min);
+    const left = ((from - min) / span) * 100;
+    const right = ((to - min) / span) * 100;
+    const fill = getElement(DOM_IDS.yearRangeFill);
+    fill.style.left = `${left}%`;
+    fill.style.width = `${right - left}%`;
+}
+
+function handleYearRangeChange(event) {
+    const fromInput = getElement(DOM_IDS.yearFrom);
+    const toInput = getElement(DOM_IDS.yearTo);
+    if (event.target === fromInput && Number(fromInput.value) > Number(toInput.value)) {
+        fromInput.value = toInput.value;
+    } else if (event.target === toInput && Number(toInput.value) < Number(fromInput.value)) {
+        toInput.value = fromInput.value;
+    }
+    updateYearRangeUi();
+    updateCharts(filterRowsByYearRange(statisticsRows));
+}
+
+function setupYearRange(rows) {
+    statisticsRows = rows;
+    const years = rows.map(getNumericPublicationYear).filter(year => year !== null);
+    const panel = getElement(DOM_IDS.yearRangePanel);
+    if (!panel) return;
+
+    if (!years.length) {
+        panel.hidden = true;
+        updateCharts([]);
+        return;
+    }
+
+    const min = Math.min(...years);
+    const max = Math.max(...years);
+    const fromInput = getElement(DOM_IDS.yearFrom);
+    const toInput = getElement(DOM_IDS.yearTo);
+    for (const input of [fromInput, toInput]) {
+        input.min = min;
+        input.max = max;
+        input.step = 1;
+    }
+    fromInput.value = min;
+    toInput.value = max;
+    panel.hidden = false;
+
+    if (!yearRangeInitialized) {
+        fromInput.addEventListener('input', handleYearRangeChange);
+        toInput.addEventListener('input', handleYearRangeChange);
+        yearRangeInitialized = true;
+    }
+    updateYearRangeUi();
+    updateCharts(filterRowsByYearRange(rows));
+}
+
 function updateCharts(rows) {
     if (typeof Chart === 'undefined') {
         return;
@@ -555,45 +649,59 @@ function updateCharts(rows) {
      * Publication year bar chart
      */
 
-    destroyChart('publicationYearBar');
-
-    chartInstances.publicationYearBar =
-        createBarChart(
+    renderChart(
+        'publicationYearBar',
+        () => createBarChart(
             publicationYearCanvas,
             publicationYears.labels,
             publicationYears.values,
             PUBLICATION_YEAR_COLOR
-        );
+        ),
+        publicationYears.labels,
+        publicationYears.values,
+        PUBLICATION_YEAR_COLOR
+    );
 
-
-    /*
-     * Resource type bar chart
-     */
-
-    destroyChart('resourceTypeBar');
-
-    chartInstances.resourceTypeBar =
-        createBarChart(
+    renderChart(
+        'resourceTypeBar',
+        () => createBarChart(
             resourceTypeBarCanvas,
             resourceTypes.labels,
             resourceTypes.values,
             resourceTypeColors
-        );
+        ),
+        resourceTypes.labels,
+        resourceTypes.values,
+        resourceTypeColors
+    );
 
-
-    /*
-     * Resource type doughnut chart
-     */
-
-    destroyChart('resourceTypePie');
-
-    chartInstances.resourceTypePie =
-        createDoughnutChart(
+    renderChart(
+        'resourceTypePie',
+        () => createDoughnutChart(
             resourceTypePieCanvas,
             resourceTypes.labels,
             resourceTypes.values,
             resourceTypeColors
-        );
+        ),
+        resourceTypes.labels,
+        resourceTypes.values,
+        resourceTypeColors
+    );
+}
+
+
+function renderChart(key, create, labels, values, colors) {
+    const chart = chartInstances[key];
+
+    if (!chart) {
+        chartInstances[key] = create();
+        return;
+    }
+
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = values;
+    chart.data.datasets[0].backgroundColor = colors;
+    chart.update('none');
 }
 
 
@@ -697,7 +805,7 @@ async function loadOrganisationData(slug) {
             rows
         );
 
-        updateCharts(rows);
+        setupYearRange(rows);
         setDownloadLabels(slug);
 
     } catch (error) {
@@ -706,7 +814,7 @@ async function loadOrganisationData(slug) {
             []
         );
 
-        updateCharts([]);
+        setupYearRange([]);
 
         alert(
             `Could not load CSV "${slug}.csv": ` +
