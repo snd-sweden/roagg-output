@@ -3,15 +3,13 @@
   <head>
     <title>SND Research Output Aggregator GRID</title>
     <link rel="icon" type="image/png" href="https://snd.se/sites/default/files/favicon.png">
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&amp;display=swap"
-      rel="stylesheet"
-    />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="resources/style.css" rel="stylesheet" />
+    <link href="resources/style.css" rel="stylesheet">
+
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -27,136 +25,132 @@
         }
       }
     </script>
-
   </head>
+
   <body>
-    <h1>SND Research Output Aggregator GRID</h1>
-    <p>
-      Simple tool for viewing and filtering output from the <a href="https://github.com/snd-sweden/roagg" target="_blank" rel="noopener noreferrer">SND Research Output Aggregator</a>. <br/>
-    </p>
-    <div id="orgListView" hidden>
-      <table class="table table-hover">
-        <thead>
-          <tr><th>Organisation</th><th>Id</th></tr>
-        </thead>
-        <tbody id="orgTableBody"></tbody>
-      </table>
-    </div>
-
-    <div id="orgDetailView" hidden>
-    <p><a href="#" id="backLink">&larr; All organisations</a></p>
-    <h2 id="orgTitle" class="h4"></h2>
-    <p class="note">
-      This grid only shows a limited set of columns from the full output. <br/>Download the full CSV or XLSX file for the selected organisation using the "Download" button.
-    </p>
-    <div class="row g-2 align-items-end mb-3">
-      <div class="col-12 col-md-auto">
-        <button id="downloadCsvBtn" class="btn btn-secondary btn-snd w-100 w-md-auto" type="button">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-arrow-down" viewBox="0 0 16 16">
-            <path d="M8.5 6.5a.5.5 0 0 0-1 0v3.793L6.354 9.146a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 10.293z"/>
-            <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/>
-          </svg>
-          <span id="downloadCsvBtnLabel">Download CSV</span>
-        </button>
-      </div>
-      <div class="col-12 col-md-auto">
-        <button id="downloadXlsxBtn" class="btn btn-secondary btn-snd w-100 w-md-auto" type="button">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-arrow-down" viewBox="0 0 16 16">
-            <path d="M8.5 6.5a.5.5 0 0 0-1 0v3.793L6.354 9.146a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 10.293z"/>
-            <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/>
-          </svg>
-          <span id="downloadXlsxBtnLabel">Download XLSX</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Last update section -->
-    <div>
+    <main id="app" v-cloak>
+      <h1>SND Research Output Aggregator GRID</h1>
       <p>
-        <strong><label for="lastUpdate">Roagg output updated:</label></strong> <span id="lastUpdate">Unknown</span>
+        Simple tool for viewing and filtering output from
+        <a href="https://github.com/snd-sweden/roagg" target="_blank" rel="noopener noreferrer">SND Research Output Aggregator</a>.
       </p>
-    </div>
 
-    <ul class="nav nav-tabs mb-3" id="viewTabs">
-      <li class="nav-item">
-        <button class="nav-link active" id="grid-tab" data-bs-toggle="tab" data-bs-target="#grid-pane" type="button" aria-controls="grid-pane">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-grid-3x3" viewBox="0 0 16 16">
-            <path d="M0 1.5A1.5 1.5 0 0 1 1.5 0h13A1.5 1.5 0 0 1 16 1.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 14.5zM1.5 1a.5.5 0 0 0-.5.5V5h4V1zM5 6H1v4h4zm1 4h4V6H6zm-1 1H1v3.5a.5.5 0 0 0 .5.5H5zm1 0v4h4v-4zm5 0v4h3.5a.5.5 0 0 0 .5-.5V11zm0-1h4V6h-4zm0-5h4V1.5a.5.5 0 0 0-.5-.5H11zm-1 0V1H6v4z"/>
-          </svg> 
-          Grid
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" id="statistics-tab" data-bs-toggle="tab" data-bs-target="#statistics-pane" type="button" aria-controls="statistics-pane">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bar-chart-line" viewBox="0 0 16 16">
-            <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1zm1 12h2V2h-2zm-3 0V7H7v7zm-5 0v-3H2v3z"/>
-          </svg>
-          Statistics
-        </button>
-      </li>
-    </ul>
+      <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
 
-    <div class="tab-content" id="viewTabsContent">
-      <div class="tab-pane fade show active" id="grid-pane" aria-labelledby="grid-tab">
-        <div id="myGrid"></div>
-      </div>
-      <div class="tab-pane fade" id="statistics-pane" aria-labelledby="statistics-tab">
-        <section class="statistics-section">
-          <div class="year-range-panel mb-3" id="yearRangePanel" hidden>
+      <section v-if="!currentOrganisation">
+        <table class="table table-hover">
+          <thead>
+            <tr><th>Organisation</th><th>Id</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="organisation in organisations" :key="organisation.slug">
+              <td><a :href="`#${encodeURIComponent(organisation.slug)}`">{{ organisation.name_en }}</a></td>
+              <td>{{ organisation.slug }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section v-else>
+        <p><a href="#">&larr; All organisations</a></p>
+        <h2 class="h4">{{ currentOrganisation.name_en }} ({{ currentOrganisation.slug }})</h2>
+
+        <p class="note">
+          This grid only shows a limited set of columns from the full output.<br>
+          Download the full CSV or XLSX file for the selected organisation using the Download buttons.
+        </p>
+
+        <div class="row g-2 align-items-end mb-3">
+          <div class="col-12 col-md-auto">
+            <button class="btn btn-secondary btn-snd w-100 w-md-auto" type="button" :disabled="loading" @click="download('csv')">
+              <span aria-hidden="true">↓</span>
+              Download {{ currentOrganisation.slug }}.csv
+            </button>
+          </div>
+          <div class="col-12 col-md-auto">
+            <button class="btn btn-secondary btn-snd w-100 w-md-auto" type="button" :disabled="loading" @click="download('xlsx')">
+              <span aria-hidden="true">↓</span>
+              Download {{ currentOrganisation.slug }}.xlsx
+            </button>
+          </div>
+        </div>
+
+        <p><strong>Roagg output updated:</strong> {{ lastUpdated }}</p>
+
+        <ul class="nav nav-tabs mb-3">
+          <li class="nav-item">
+            <button class="nav-link" :class="{ active: activeTab === 'grid' }" type="button" @click="activeTab = 'grid'">Grid</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" :class="{ active: activeTab === 'statistics' }" type="button" @click="activeTab = 'statistics'">Statistics</button>
+          </li>
+        </ul>
+
+        <div v-show="activeTab === 'grid'">
+          <div ref="gridElement" id="myGrid"></div>
+        </div>
+
+        <section v-show="activeTab === 'statistics'" class="statistics-section">
+          <div v-if="hasYearRange" class="year-range-panel mb-3">
             <div class="year-range-header">
               <strong>Publication year range</strong>
-              <span id="yearRangeLabel" aria-live="polite"></span>
+              <span aria-live="polite">{{ yearFrom }}–{{ yearTo }}</span>
             </div>
+
             <div class="year-range-slider" aria-label="Publication year range">
-              <div class="year-range-track" aria-hidden="true"><div id="yearRangeFill" class="year-range-fill"></div></div>
-              <input id="yearFrom" type="range" aria-label="From year">
-              <input id="yearTo" type="range" aria-label="To year">
+              <div class="year-range-track" aria-hidden="true">
+                <div class="year-range-fill" :style="yearRangeFillStyle"></div>
+              </div>
+              <input v-model.number="yearFrom" :min="minYear" :max="maxYear" type="range" step="1" aria-label="From year" @input="clampYearRange('from')">
+              <input v-model.number="yearTo" :min="minYear" :max="maxYear" type="range" step="1" aria-label="To year" @input="clampYearRange('to')">
             </div>
+
             <div class="year-range-values">
-              <span>From: <strong id="yearFromValue"></strong></span>
-              <span>To: <strong id="yearToValue"></strong></span>
+              <span>From: <strong>{{ yearFrom }}</strong></span>
+              <span>To: <strong>{{ yearTo }}</strong></span>
             </div>
           </div>
+
+          <div class="chart-panel mb-3">
+            <h3 class="h6 mb-2">Source coverage ({{ filteredRows.length }} resources)</h3>
+            <table class="table table-sm mb-0">
+              <thead><tr><th>Source</th><th class="text-end">Resources</th><th class="text-end">Share</th></tr></thead>
+              <tbody>
+                <tr v-for="s in sourceCounts" :key="s.field">
+                  <td>{{ s.label }}</td>
+                  <td class="text-end">{{ s.count }}</td><td class="text-end">{{ s.percent }}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
           <div class="chart-panel mb-3">
             <h3 class="h6 mb-2">Resources per Publication Year</h3>
-            <div class="chart-wrap">
-              <canvas id="publicationYearBarChart"></canvas>
-            </div>
+            <div class="chart-wrap"><canvas ref="publicationYearChart"></canvas></div>
           </div>
+
           <div class="row g-3">
             <div class="col-12 col-xl-8">
               <div class="chart-panel">
                 <h3 class="h6 mb-2">Counts by Resource Type</h3>
-                <div class="chart-wrap">
-                  <canvas id="resourceTypeBarChart"></canvas>
-                </div>
+                <div class="chart-wrap"><canvas ref="resourceTypeBarChart"></canvas></div>
               </div>
             </div>
             <div class="col-12 col-xl-4">
               <div class="chart-panel">
-                <h3 class="h6 mb-2">Distribution</h3>
-                <div class="chart-wrap chart-wrap-pie">
-                  <canvas id="resourceTypePieChart"></canvas>
-                </div>
+                <h3 class="h6 mb-2">DataCite client name</h3>
+                <div class="chart-wrap chart-wrap-pie"><canvas ref="dataCiteClientPieChart"></canvas></div>
               </div>
             </div>
           </div>
         </section>
-      </div>
-    </div>
-    </div>
-    
-    <script>
-      (function () {
-        const appLocation = "";
+      </section>
+    </main>
 
-        window.__basePath = appLocation;
-      })();
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@34.1.2/dist/ag-grid-community.min.js?t=1755787214249"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@34.1.2/dist/ag-grid-community.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
     <script src="resources/main.js"></script>
   </body>
