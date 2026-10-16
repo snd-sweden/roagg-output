@@ -197,6 +197,46 @@ createApp({
       });
     },
 
+    countTables() {
+      const groups = [
+        {
+          title: 'Reference count',
+          fields: [
+            ['dataCiteCitationCount', 'DataCite citation count'],
+            ['openAlexCitedByCount', 'OpenAlex cited by count'],
+            ['dataCiteReferenceCount', 'DataCite reference count'],
+            ['openAlexReferencedWorksCount', 'OpenAlex referenced work count']
+          ]
+        },
+        {
+          title: 'View count',
+          fields: [
+            ['dataCiteViewCount', 'DataCite view count'],
+            ['openAireIndicatorsUsageCountsViews', 'OpenAire view count']
+          ]
+        },
+        {
+          title: 'Download count',
+          fields: [
+            ['dataCiteDownloadCount', 'DataCite download count'],
+            ['openAireIndicatorsUsageCountsDownloads', 'OpenAire download count']
+          ]
+        }
+      ];
+
+      return groups.map(group => ({
+        ...group,
+        totals: group.fields.map(([field, label]) => ({
+          field,
+          label,
+          sum: this.filteredRows.reduce((total, row) => {
+            const value = Number(row[field]);
+            return total + (Number.isFinite(value) ? value : 0);
+          }, 0)
+        }))
+      }));
+    },
+
     yearRangeFillStyle() {
       if (!this.hasYearRange) return {};
       const span = Math.max(1, this.maxYear - this.minYear);
