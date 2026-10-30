@@ -7,8 +7,10 @@ const CONFIG = {
   unknownValue: 'Unknown'
 };
 
+const TOP_RESOURCE_TYPES = 4;
+const OTHER_LABEL = 'Other';
+
 const COLORS = {
-  publicationYear: '#1e3963',
   genericResourceType: '#9ca3af',
   resourceTypes: {
     // Articles / established publications – blue
@@ -403,14 +405,35 @@ createApp({
 
       const typeCounts = countBy(rows, resourceType).sort((a, b) => b[1] - a[1]);
       const clientCounts = countBy(rows, dataCiteClientName).sort((a, b) => b[1] - a[1]);
-      return { yearCounts, typeCounts, clientCounts };
+
+      const topTypes = typeCounts.slice(0, TOP_RESOURCE_TYPES).map(([label]) => label);
+      const hasOther = typeCounts.length > topTypes.length;
+      // The first dataset is stacked at the bottom, so "Other" goes first.
+      const namedTypes = topTypes.filter(label => label !== OTHER_LABEL);
+      const seriesLabels = hasOther || topTypes.includes(OTHER_LABEL) ? [OTHER_LABEL, ...namedTypes] : namedTypes;
+      const perYear = new Map();
+      for (const row of rows) {
+        const year = publicationYear(row);
+        const type = resourceType(row);
+        const series = topTypes.includes(type) ? type : OTHER_LABEL;
+        if (!perYear.has(year)) perYear.set(year, new Map());
+        const counts = perYear.get(year);
+        counts.set(series, (counts.get(series) || 0) + 1);
+      }
+      const yearSeries = seriesLabels.map(label => ({
+        label,
+        data: yearCounts.map(([year]) => perYear.get(year)?.get(label) || 0),
+        backgroundColor: label === OTHER_LABEL
+          ? COLORS.genericResourceType
+          : COLORS.resourceTypes[label] || COLORS.genericResourceType
+      }));
+      return { yearCounts, yearSeries, typeCounts, clientCounts };
     },
 
     renderCharts() {
       if (!this.currentOrganisation || typeof Chart === 'undefined') return;
-      const { yearCounts, typeCounts, clientCounts } = this.chartData();
+      const { yearCounts, yearSeries, typeCounts, clientCounts } = this.chartData();
       const yearLabels = yearCounts.map(([label]) => label);
-      const yearValues = yearCounts.map(([, value]) => value);
       const typeLabels = typeCounts.map(([label]) => label);
       const typeValues = typeCounts.map(([, value]) => value);
       const typeColors = typeLabels.map(label => COLORS.resourceTypes[label] || COLORS.genericResourceType);
@@ -419,9 +442,12 @@ createApp({
       const clientColors = clientLabels.map((_, i) => CLIENT_PALETTE[i % CLIENT_PALETTE.length]);
 
       if (!this.charts.publicationYear && this.$refs.publicationYearChart) {
-        this.charts.publicationYear = markRaw(this.createBarChart(this.$refs.publicationYearChart, yearLabels, yearValues, COLORS.publicationYear));
+        this.charts.publicationYear = markRaw(this.createStackedBarChart(this.$refs.publicationYearChart, yearLabels, yearSeries));
       } else if (this.charts.publicationYear) {
-        updateChart(this.charts.publicationYear, yearLabels, yearValues, COLORS.publicationYear);
+        const chart = this.charts.publicationYear;
+        chart.data.labels = yearLabels;
+        chart.data.datasets = yearSeries.map(series => ({ ...series, borderWidth: 0 }));
+        chart.update('none');
       }
 
       if (!this.charts.resourceTypeBar && this.$refs.resourceTypeBarChart) {
@@ -439,6 +465,19 @@ createApp({
       } else if (this.charts.dataCiteClientPie) {
         updateChart(this.charts.dataCiteClientPie, clientLabels, clientValues, clientColors);
       }
+    },
+
+    createStackedBarChart(canvas, labels, series) {
+      return new Chart(canvas, {
+        type: 'bar',
+        data: { labels, datasets: series.map(item => ({ ...item, borderWidth: 0 })) },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom' }, tooltip: { mode: 'index', intersect: false } },
+          scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } }
+        }
+      });
     },
 
     createBarChart(canvas, labels, values, backgroundColor) {
